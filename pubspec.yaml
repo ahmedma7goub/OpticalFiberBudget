@@ -29,5 +29,5 @@ flutter:
 # For example: assets/icon/icon.png
 flutter_launcher_icons:
   android: true
-  ios: true
+  ios: false
   image_path: "assets/icon/icon.png"
