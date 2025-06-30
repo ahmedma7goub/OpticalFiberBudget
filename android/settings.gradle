@@ -13,6 +13,7 @@ pluginManagement {
         maven {
             url "$flutterSdkPath/packages/flutter_tools/gradle/m2repository"
         }
+        gradlePluginPortal()
     }
 }
 
