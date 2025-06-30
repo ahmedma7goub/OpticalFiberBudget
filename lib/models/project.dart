@@ -18,6 +18,9 @@ class Project {
   String numSplices;
   String numConnectors;
   String otherLoss;
+  double? totalLoss;
+  double? powerBudget;
+  double? availableMargin;
 
   Project({
     required this.name,
@@ -34,6 +37,9 @@ class Project {
     required this.numSplices,
     required this.numConnectors,
     required this.otherLoss,
+    this.totalLoss,
+    this.powerBudget,
+    this.availableMargin,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);

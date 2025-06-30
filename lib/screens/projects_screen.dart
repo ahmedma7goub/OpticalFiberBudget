@@ -16,7 +16,36 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   @override
   void initState() {
     super.initState();
-    _projectsFuture = _storageService.loadProjects();
+    _loadProjects();
+  }
+
+  void _loadProjects() {
+    setState(() {
+      _projectsFuture = _storageService.loadProjects();
+    });
+  }
+
+  Future<void> _deleteProject(String projectName) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: Text('Are you sure you want to delete "$projectName"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _storageService.deleteProject(projectName);
+      _loadProjects(); // Refresh the list
+    }
   }
 
   @override
@@ -45,7 +74,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               final project = projects[index];
               return ListTile(
                 title: Text(project.name),
-                subtitle: Text('Wavelength: ${project.wavelength}nm'),
+                subtitle: project.availableMargin != null
+                    ? Text('Margin: ${project.availableMargin!.toStringAsFixed(2)} dB')
+                    : const Text('No result calculated'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  onPressed: () => _deleteProject(project.name),
+                  tooltip: 'Delete Project',
+                ),
                 onTap: () {
                   Navigator.of(context).pop(project);
                 },

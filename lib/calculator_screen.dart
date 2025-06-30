@@ -35,6 +35,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // Results
   String? _resultsText;
+  double? _totalLoss;
+  double? _powerBudget;
+  double? _availableMargin;
 
   static const Map<String, dynamic> STANDARDS = {
     'sm': {
@@ -208,6 +211,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final availableMargin = powerBudget - totalLoss;
 
     setState(() {
+      _totalLoss = totalLoss;
+      _powerBudget = powerBudget;
+      _availableMargin = availableMargin;
+
       _resultsText = '''
 Project: ${_projectNameController.text.isNotEmpty ? _projectNameController.text : 'Unnamed Project'}
 
@@ -312,6 +319,8 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
       return;
     }
 
+    _calculateBudget(); // Ensure results are fresh before saving
+
     final project = Project(
       name: projectName,
       fiberType: _fiberType,
@@ -327,6 +336,9 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
       numSplices: _numSplicesController.text,
       numConnectors: _numConnectorsController.text,
       otherLoss: _otherLossController.text,
+      totalLoss: _totalLoss,
+      powerBudget: _powerBudget,
+      availableMargin: _availableMargin,
     );
 
     _storageService.saveProject(project);
@@ -334,6 +346,20 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Project "$projectName" saved successfully!')),
     );
+  }
+
+  void _newProject() {
+    setState(() {
+      _projectNameController.text = 'Unnamed Project';
+      _resultsText = null;
+      _totalLoss = null;
+      _powerBudget = null;
+      _availableMargin = null;
+      // Reset dropdowns and call _updateDefaults to reset the form
+      _fiberType = 'sm';
+      _smStandard = 'G.652.A';
+      _updateDefaults();
+    });
   }
 
   void _loadProject() async {
@@ -380,7 +406,9 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value == 'save') {
+              if (value == 'new') {
+                _newProject();
+              } else if (value == 'save') {
                 _saveProject();
               } else if (value == 'load') {
                 _loadProject();
@@ -389,6 +417,14 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'new',
+                child: ListTile(
+                  leading: Icon(Icons.add_circle_outline),
+                  title: Text('New Project'),
+                ),
+              ),
+              const PopupMenuDivider(),
               const PopupMenuItem<String>(
                 value: 'save',
                 child: ListTile(

@@ -46,4 +46,10 @@ class StorageService {
     projects.add(project);
     await saveProjects(projects);
   }
+
+  Future<void> deleteProject(String projectName) async {
+    final projects = await loadProjects();
+    projects.removeWhere((p) => p.name == projectName);
+    await saveProjects(projects);
+  }
 }
