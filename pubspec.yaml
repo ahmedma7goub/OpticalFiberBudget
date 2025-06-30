@@ -19,6 +19,15 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: "^0.13.1"
 
 flutter:
   uses-material-design: true
+
+# flutter_launcher_icons configuration
+# IMPORTANT: You must create a 1024x1024px icon and place it at the path below.
+# For example: assets/icon/icon.png
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
