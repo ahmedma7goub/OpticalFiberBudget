@@ -300,51 +300,39 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
     );
   }
 
-  void _showSaveDialog() {
-    final projectNameController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Save Project'),
-        content: TextField(
-          controller: projectNameController,
-          decoration: const InputDecoration(hintText: 'Enter project name'),
+  void _saveProject() {
+    final projectName = _projectNameController.text;
+    if (projectName.isEmpty || projectName == 'Unnamed Project') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid project name before saving.'),
+          backgroundColor: Colors.redAccent,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (projectNameController.text.isNotEmpty) {
-                final project = Project(
-                  name: projectNameController.text,
-                  fiberType: _fiberType,
-                  smStandard: _smStandard,
-                  mmStandard: _mmStandard,
-                  wavelength: _wavelength,
-                  txPower: _txPowerController.text,
-                  rxSensitivity: _rxSensitivityController.text,
-                  fiberLoss: _fiberLossController.text,
-                  spliceLoss: _spliceLossController.text,
-                  connectorLoss: _connectorLossController.text,
-                  distance: _distanceController.text,
-                  numSplices: _numSplicesController.text,
-                  numConnectors: _numConnectorsController.text,
-                  otherLoss: _otherLossController.text,
-                );
-                _storageService.saveProject(project);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Project saved successfully!')),
-                );
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+      );
+      return;
+    }
+
+    final project = Project(
+      name: projectName,
+      fiberType: _fiberType,
+      smStandard: _smStandard,
+      mmStandard: _mmStandard,
+      wavelength: _wavelength,
+      txPower: _txPowerController.text,
+      rxSensitivity: _rxSensitivityController.text,
+      fiberLoss: _fiberLossController.text,
+      spliceLoss: _spliceLossController.text,
+      connectorLoss: _connectorLossController.text,
+      distance: _distanceController.text,
+      numSplices: _numSplicesController.text,
+      numConnectors: _numConnectorsController.text,
+      otherLoss: _otherLossController.text,
+    );
+
+    _storageService.saveProject(project);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Project "$projectName" saved successfully!')),
     );
   }
 
@@ -355,6 +343,7 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
 
     if (selectedProject != null) {
       setState(() {
+        _projectNameController.text = selectedProject.name;
         _fiberType = selectedProject.fiberType;
         _smStandard = selectedProject.smStandard;
         _mmStandard = selectedProject.mmStandard;
@@ -387,20 +376,42 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
           IconButton(
             icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: widget.onToggleTheme,
+            tooltip: 'Toggle Theme',
           ),
-          IconButton(
-            icon: const Icon(Icons.save_alt_outlined),
-            onPressed: _showSaveDialog,
-            tooltip: 'Save Project',
-          ),
-          IconButton(
-            icon: const Icon(Icons.folder_open_outlined),
-            onPressed: _loadProject,
-            tooltip: 'Load Project',
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: _showAboutDialog,
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'save') {
+                _saveProject();
+              } else if (value == 'load') {
+                _loadProject();
+              } else if (value == 'about') {
+                _showAboutDialog();
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'save',
+                child: ListTile(
+                  leading: Icon(Icons.save_alt_outlined),
+                  title: Text('Save Project'),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'load',
+                child: ListTile(
+                  leading: Icon(Icons.folder_open_outlined),
+                  title: Text('Load Project'),
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'about',
+                child: ListTile(
+                  leading: Icon(Icons.info_outline),
+                  title: Text('About'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
