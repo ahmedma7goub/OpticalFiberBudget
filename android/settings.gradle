@@ -1,8 +1,18 @@
 pluginManagement {
+    def flutterSdkPath = {
+        def properties = new Properties()
+        file("local.properties").withInputStream { properties.load(it) }
+        def flutterSdk = properties.getProperty("flutter.sdk")
+        assert flutterSdk != null, "flutter.sdk not set in local.properties"
+        return flutterSdk
+    }()
+
     repositories {
         google()
         mavenCentral()
-        gradlePluginPortal()
+        maven {
+            url "$flutterSdkPath/packages/flutter_tools/gradle/m2repository"
+        }
     }
 }
 
