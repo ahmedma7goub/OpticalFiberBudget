@@ -12,15 +12,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Optical Power Budget Calculator',
-      theme: ThemeData.dark().copyWith(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2196F3),
-          brightness: Brightness.dark,
-        ),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFF2196F3),
+        scaffoldBackgroundColor: const Color(0xFF1a1a1a),
         cardColor: const Color(0xFF2d2d2d),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white70),
+        ),
         inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF1a1a1a),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10.0),
+            borderSide: const BorderSide(color: Colors.white10),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: const BorderSide(color: Color(0xFF2196F3)),
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
