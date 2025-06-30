@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+  final VoidCallback onToggleTheme;
+  const CalculatorScreen({super.key, required this.onToggleTheme});
 
   @override
   _CalculatorScreenState createState() => _CalculatorScreenState();
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  // Controllers for text fields
-  final _projectNameController = TextEditingController();
+  // Input Controllers
+  final _projectNameController = TextEditingController(text: 'Unnamed Project');
   final _distanceController = TextEditingController();
   final _numSplicesController = TextEditingController();
   final _numConnectorsController = TextEditingController();
   final _otherLossController = TextEditingController();
+
+  // Editable parameter controllers
+  final _txPowerController = TextEditingController();
+  final _rxSensitivityController = TextEditingController();
+  final _fiberLossController = TextEditingController();
+  final _spliceLossController = TextEditingController();
+  final _connectorLossController = TextEditingController();
 
   // State variables
   String _fiberType = 'sm';
@@ -21,17 +29,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String _mmStandard = 'OM1';
   int _wavelength = 1310;
 
-  // Read-only values derived from standards
-  double _txPower = 0;
-  double _rxSensitivity = 0;
-  double _fiberLoss = 0;
-  double _spliceLoss = 0;
-  double _connectorLoss = 0;
-
   // Results
   String? _resultsText;
 
-  // Data from the web app's JavaScript
   static const Map<String, dynamic> STANDARDS = {
     'sm': {
       'G.652.A': {
@@ -165,15 +165,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         _wavelength = validWavelengths[0];
       }
 
-      _txPower = config['tx'];
-      _rxSensitivity = config['rx'];
-      _fiberLoss = config['loss'][_wavelength].toDouble();
+      _txPowerController.text = config['tx'].toStringAsFixed(1);
+      _rxSensitivityController.text = config['rx'].toStringAsFixed(1);
+      _fiberLossController.text = config['loss'][_wavelength].toDouble().toStringAsFixed(2);
 
       final spliceRange = List<double>.from(config['spliceRange']);
-      _spliceLoss = (spliceRange[0] + spliceRange[1]) / 2;
-      _connectorLoss = config['connectorLoss'];
+      _spliceLossController.text = ((spliceRange[0] + spliceRange[1]) / 2).toStringAsFixed(2);
+      _connectorLossController.text = config['connectorLoss'].toStringAsFixed(2);
 
-      // Set default values for controllers
       _distanceController.text = (_fiberType == 'sm' ? '10' : '100');
       _numSplicesController.text = '2';
       _numConnectorsController.text = '2';
@@ -182,6 +181,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   void _calculateBudget() {
+    final txPower = double.tryParse(_txPowerController.text) ?? 0;
+    final rxSensitivity = double.tryParse(_rxSensitivityController.text) ?? 0;
+    final fiberLoss = double.tryParse(_fiberLossController.text) ?? 0;
+    final spliceLoss = double.tryParse(_spliceLossController.text) ?? 0;
+    final connectorLoss = double.tryParse(_connectorLossController.text) ?? 0;
+
     final distance = double.tryParse(_distanceController.text) ?? 0;
     final numSplices = int.tryParse(_numSplicesController.text) ?? 0;
     final numConnectors = int.tryParse(_numConnectorsController.text) ?? 0;
@@ -190,12 +195,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final effectiveDistance = _fiberType == 'sm' ? distance : distance / 1000;
 
     final totalLoss =
-        (_fiberLoss * effectiveDistance) +
-        (_spliceLoss * numSplices) +
-        (_connectorLoss * numConnectors) +
+        (fiberLoss * effectiveDistance) +
+        (spliceLoss * numSplices) +
+        (connectorLoss * numConnectors) +
         otherLoss;
 
-    final powerBudget = _txPower - _rxSensitivity;
+    final powerBudget = txPower - rxSensitivity;
     final availableMargin = powerBudget - totalLoss;
 
     setState(() {
@@ -206,10 +211,36 @@ Total System Loss: ${totalLoss.toStringAsFixed(2)} dB
 Power Budget: ${powerBudget.toStringAsFixed(2)} dB
 Available Margin: ${availableMargin.toStringAsFixed(2)} dB
 ''';
-      if (availableMargin < 2) {
+      if (availableMargin < 3) {
         _resultsText = (_resultsText ?? '') + '\n⚠️ Low Power Margin! Consider using better components or reducing distance.';
       }
     });
+  }
+
+  void _showAboutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('About'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ahmed Mahgoub'),
+              Text('+201157750025'),
+              Text('a.amhgoub@tbteck.com'),
+              Text('Cairo, Egypt'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -217,18 +248,31 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
     final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
     final config = STANDARDS[_fiberType][standardKey];
     final validWavelengths = List<int>.from(config['wavelengths']);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Optical Power Budget Calculator'),
-        backgroundColor: Theme.of(context).cardColor,
+        title: const Text('Optical Power Budget'),
+        actions: [
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: widget.onToggleTheme,
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: _showAboutDialog,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _buildSectionHeader('Project Details'),
             _buildTextField(_projectNameController, 'Project Name'),
+            const SizedBox(height: 16),
+            _buildSectionHeader('Fiber Configuration'),
             _buildDropdown('Fiber Type', _fiberType, ['sm', 'mm'], (val) {
               setState(() {
                 _fiberType = val!;
@@ -255,16 +299,20 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
                 _updateDefaults();
               });
             }),
-            _buildReadOnlyField('Transmitter Power (dBm)', _txPower.toStringAsFixed(1)),
-            _buildReadOnlyField('Receiver Sensitivity (dBm)', _rxSensitivity.toStringAsFixed(1)),
-            _buildReadOnlyField('Fiber Attenuation (dB/km)', _fiberLoss.toStringAsFixed(2)),
+            const SizedBox(height: 16),
+            _buildSectionHeader('System Parameters (Editable)'),
+            _buildTextField(_txPowerController, 'Transmitter Power (dBm)', keyboardType: TextInputType.number),
+            _buildTextField(_rxSensitivityController, 'Receiver Sensitivity (dBm)', keyboardType: TextInputType.number),
+            _buildTextField(_fiberLossController, 'Fiber Attenuation (dB/km)', keyboardType: TextInputType.number),
+            _buildTextField(_spliceLossController, 'Splice Loss per Splice (dB)', keyboardType: TextInputType.number),
+            _buildTextField(_connectorLossController, 'Connector Loss per Connection (dB)', keyboardType: TextInputType.number),
+            const SizedBox(height: 16),
+            _buildSectionHeader('Link Details'),
             _buildTextField(_distanceController, 'Link Distance (${_fiberType == 'sm' ? 'km' : 'm'})', keyboardType: TextInputType.number),
-            _buildReadOnlyField('Splice Loss per Splice (dB)', _spliceLoss.toStringAsFixed(2)),
             _buildTextField(_numSplicesController, 'Number of Splices', keyboardType: TextInputType.number),
-            _buildReadOnlyField('Connector Loss per Connection (dB)', _connectorLoss.toStringAsFixed(2)),
             _buildTextField(_numConnectorsController, 'Number of Connectors', keyboardType: TextInputType.number),
             _buildTextField(_otherLossController, 'Other Losses (dB)', keyboardType: TextInputType.number),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _calculateBudget,
               child: const Text('Calculate Budget'),
@@ -276,18 +324,25 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(10.0),
-                    border: Border.all(color: Colors.white10),
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Text(
                     _resultsText!,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
                   ),
                 ),
               ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(title, style: Theme.of(context).textTheme.titleLarge),
     );
   }
 
@@ -302,16 +357,6 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
     );
   }
 
-  Widget _buildReadOnlyField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: InputDecorator(
-        decoration: InputDecoration(labelText: label),
-        child: Text(value, style: Theme.of(context).textTheme.bodyLarge),
-      ),
-    );
-  }
-
   Widget _buildDropdown(String label, String value, List<String> items, ValueChanged<String?> onChanged) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -320,6 +365,7 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
         value: value,
         items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
         onChanged: onChanged,
+        isExpanded: true,
       ),
     );
   }
