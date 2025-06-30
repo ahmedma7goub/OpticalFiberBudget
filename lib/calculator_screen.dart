@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:optical_power_budget/models/project.dart';
+import 'package:optical_power_budget/screens/projects_screen.dart';
+import 'package:optical_power_budget/services/storage_service.dart';
 
 class CalculatorScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -9,6 +12,7 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
+  final StorageService _storageService = StorageService();
   // Input Controllers
   final _projectNameController = TextEditingController(text: 'Unnamed Project');
   final _distanceController = TextEditingController();
@@ -296,6 +300,79 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
     );
   }
 
+  void _showSaveDialog() {
+    final projectNameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Save Project'),
+        content: TextField(
+          controller: projectNameController,
+          decoration: const InputDecoration(hintText: 'Enter project name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (projectNameController.text.isNotEmpty) {
+                final project = Project(
+                  name: projectNameController.text,
+                  fiberType: _fiberType,
+                  smStandard: _smStandard,
+                  mmStandard: _mmStandard,
+                  wavelength: _wavelength,
+                  txPower: _txPowerController.text,
+                  rxSensitivity: _rxSensitivityController.text,
+                  fiberLoss: _fiberLossController.text,
+                  spliceLoss: _spliceLossController.text,
+                  connectorLoss: _connectorLossController.text,
+                  distance: _distanceController.text,
+                  numSplices: _numSplicesController.text,
+                  numConnectors: _numConnectorsController.text,
+                  otherLoss: _otherLossController.text,
+                );
+                _storageService.saveProject(project);
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Project saved successfully!')),
+                );
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _loadProject() async {
+    final selectedProject = await Navigator.of(context).push<Project>(
+      MaterialPageRoute(builder: (context) => const ProjectsScreen()),
+    );
+
+    if (selectedProject != null) {
+      setState(() {
+        _fiberType = selectedProject.fiberType;
+        _smStandard = selectedProject.smStandard;
+        _mmStandard = selectedProject.mmStandard;
+        _wavelength = selectedProject.wavelength;
+        _txPowerController.text = selectedProject.txPower;
+        _rxSensitivityController.text = selectedProject.rxSensitivity;
+        _fiberLossController.text = selectedProject.fiberLoss;
+        _spliceLossController.text = selectedProject.spliceLoss;
+        _connectorLossController.text = selectedProject.connectorLoss;
+        _distanceController.text = selectedProject.distance;
+        _numSplicesController.text = selectedProject.numSplices;
+        _numConnectorsController.text = selectedProject.numConnectors;
+        _otherLossController.text = selectedProject.otherLoss;
+        _calculateBudget(); // Recalculate with loaded values
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
@@ -310,6 +387,16 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
           IconButton(
             icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: widget.onToggleTheme,
+          ),
+          IconButton(
+            icon: const Icon(Icons.save_alt_outlined),
+            onPressed: _showSaveDialog,
+            tooltip: 'Save Project',
+          ),
+          IconButton(
+            icon: const Icon(Icons.folder_open_outlined),
+            onPressed: _loadProject,
+            tooltip: 'Load Project',
           ),
           IconButton(
             icon: const Icon(Icons.info_outline),
