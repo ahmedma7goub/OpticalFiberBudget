@@ -228,7 +228,7 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
             children: [
               Text('Ahmed Mahgoub'),
               Text('+201157750025'),
-              Text('a.amhgoub@tbteck.com'),
+              Text('info@tbteck.com'),
               Text('Cairo, Egypt'),
             ],
           ),

@@ -3,33 +3,34 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primaryColor: const Color(0xFF0D47A1), // Deeper Blue
+    primaryColor: const Color(0xFF3A416F), // Deep Indigo
     colorScheme: const ColorScheme.dark(
-      primary: Color(0xFF42A5F5), // Brighter Blue for accents
-      secondary: Color(0xFF1DE9B6), // Teal accent
-      surface: Color(0xFF121212), // True black for surfaces
-      background: Color(0xFF121212),
-      error: Color(0xFFCF6679),
-      onPrimary: Colors.black,
-      onSecondary: Colors.black,
-      onSurface: Colors.white,
-      onBackground: Colors.white,
-      onError: Colors.black,
+      primary: Color(0xFF81A1C1),   // Frosty Blue
+      secondary: Color(0xFFB48EAD), // Muted Purple
+      surface: Color(0xFF2E3440),   // Dark Grey-Blue (Nord-like)
+      background: Color(0xFF242833), // Darker Grey-Blue
+      error: Color(0xFFBF616A),     // Muted Red
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onSurface: Color(0xFFECEFF4),   // Off-white
+      onBackground: Color(0xFFECEFF4),
+      onError: Colors.white,
     ),
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    cardColor: const Color(0xFF1E1E1E), // Slightly lighter cards
+    scaffoldBackgroundColor: const Color(0xFF242833),
+    cardColor: const Color(0xFF2E3440),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF2C2C2C),
+      fillColor: const Color(0xFF3B4252),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
         borderSide: BorderSide.none,
       ),
+      labelStyle: const TextStyle(color: Color(0xFFD8DEE9)),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF42A5F5),
-        foregroundColor: Colors.black,
+        backgroundColor: const Color(0xFF81A1C1), // Frosty Blue
+        foregroundColor: const Color(0xFF2E3440), // Dark text on button
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),
@@ -37,8 +38,18 @@ class AppTheme {
       ),
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: Color(0xFF2E3440),
       elevation: 0,
+      titleTextStyle: TextStyle(
+        color: Color(0xFFECEFF4),
+        fontSize: 20,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Color(0xFFECEFF4)),
+      bodyMedium: TextStyle(color: Color(0xFFD8DEE9)),
+      titleLarge: TextStyle(color: Color(0xFFECEFF4), fontWeight: FontWeight.bold),
     ),
   );
 
