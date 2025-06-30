@@ -27,6 +27,7 @@ jobs:
         with:
           flutter-version: "stable"
           cache: true
+          java-version: '17'
 
       # Get dependencies
       - name: Install dependencies
