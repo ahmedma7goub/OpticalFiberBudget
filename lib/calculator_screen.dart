@@ -220,26 +220,79 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
   void _showAboutDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('About'),
-        content: const SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Ahmed Mahgoub'),
-              Text('+201157750025'),
-              Text('info@tbteck.com'),
-              Text('Cairo, Egypt'),
+      builder: (context) {
+        return DefaultTabController(
+          length: 2,
+          child: AlertDialog(
+            titlePadding: const EdgeInsets.all(0),
+            title: const TabBar(
+              tabs: [
+                Tab(text: 'About'),
+                Tab(text: 'Calculation Details'),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 320, // Adjusted height for content
+              child: TabBarView(
+                children: [
+                  const SingleChildScrollView(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Developed by:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        SizedBox(height: 8),
+                        Text('Ahmed Mahgoub'),
+                        Text('+201157750025'),
+                        Text('info@tbteck.com'),
+                        Text('Cairo, Egypt'),
+                      ],
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Fiber Standards',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'The app uses typical values from ITU-T and TIA standards. These are pre-filled when you select a standard but are fully editable to match your project\'s specific requirements.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Core Equations',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text('1. Total System Loss (dB):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        const Text('(Attenuation × Distance) + (Splice Loss × Splices) + (Connector Loss × Connectors) + Other Losses', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 13)),
+                        const SizedBox(height: 12),
+                        const Text('2. Power Budget (dB):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        const Text('Transmitter Power - Receiver Sensitivity', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 13)),
+                        const SizedBox(height: 12),
+                        const Text('3. Available Margin (dB):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        const Text('Power Budget - Total System Loss', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

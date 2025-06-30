@@ -25,6 +25,10 @@ class AppTheme {
         borderRadius: BorderRadius.circular(12.0),
         borderSide: BorderSide.none,
       ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xFFA3BE8C), width: 2.0), // Nord-style green
+      ),
       labelStyle: const TextStyle(color: Color(0xFFD8DEE9)),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
