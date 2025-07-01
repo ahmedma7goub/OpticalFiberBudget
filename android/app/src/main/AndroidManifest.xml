@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.optical_power_budget">
    <application
-        android:label="Optical Power Budget Calc"
+        android:label="Fiber/Telcom Assistant"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

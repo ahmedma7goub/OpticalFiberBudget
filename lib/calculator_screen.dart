@@ -4,8 +4,7 @@ import 'package:optical_power_budget/screens/projects_screen.dart';
 import 'package:optical_power_budget/services/storage_service.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  final VoidCallback onToggleTheme;
-  const CalculatorScreen({super.key, required this.onToggleTheme});
+  const CalculatorScreen({super.key});
 
   @override
   _CalculatorScreenState createState() => _CalculatorScreenState();
@@ -399,19 +398,7 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
       appBar: AppBar(
         title: const Text('Optical Power Budget'),
         actions: [
-          IconButton(
-            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-            onPressed: widget.onToggleTheme,
-            tooltip: 'Toggle Theme',
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'new') {
-                _newProject();
-              } else if (value == 'save') {
-                _saveProject();
-              } else if (value == 'load') {
-                _loadProject();
+          _buildPopupMenu(context),
               } else if (value == 'about') {
                 _showAboutDialog();
               }
