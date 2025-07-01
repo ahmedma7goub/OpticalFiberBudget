@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:optical_power_budget/calculator_screen.dart';
+import 'package:optical_power_budget/screens/link_loss_calculator_screen.dart';
 import 'package:optical_power_budget/screens/placeholder_screen.dart';
 
 class HomeScreen extends StatelessWidget {
