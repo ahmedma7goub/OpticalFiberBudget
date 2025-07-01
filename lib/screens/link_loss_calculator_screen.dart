@@ -34,37 +34,46 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   @override
   void initState() {
     super.initState();
-    // Defer the initial setup and calculation until after the first frame is built.
-    // This prevents errors during initialization that can cause a blank screen.
+
+    // Add listeners to all controllers to trigger recalculation on any input change.
+    _distanceController.addListener(_calculateLoss);
+    _numSplicesController.addListener(_calculateLoss);
+    _numConnectorsController.addListener(_calculateLoss);
+    _otherLossController.addListener(_calculateLoss);
+    _fiberLossController.addListener(_calculateLoss);
+    _spliceLossController.addListener(_calculateLoss);
+    _connectorLossController.addListener(_calculateLoss);
+
+    // Defer the initial setup until after the first frame is built.
+    // This will set the default values in the text fields, which will
+    // then trigger the listeners to perform the initial calculation.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateDefaults();
     });
   }
 
   void _updateDefaults() {
-    setState(() {
-      final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
-      final config = STANDARDS[_fiberType][standardKey];
+    // This method now only sets the text of the controllers.
+    // It does not call setState, as the listeners will trigger the rebuild.
+    final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
+    final config = STANDARDS[_fiberType][standardKey];
 
-      final validWavelengths = List<int>.from(config['wavelengths']);
-      if (!validWavelengths.contains(_wavelength)) {
-        _wavelength = validWavelengths[0];
-      }
+    final validWavelengths = List<int>.from(config['wavelengths']);
+    if (!validWavelengths.contains(_wavelength)) {
+      // This state change must be done in the event handler's setState block.
+      // We will handle it there and re-call this method.
+    }
 
-      _fiberLossController.text = config['loss'][_wavelength].toDouble().toStringAsFixed(2);
+    _fiberLossController.text = config['loss'][_wavelength].toDouble().toStringAsFixed(2);
+    final spliceRange = List<double>.from(config['spliceRange']);
+    _spliceLossController.text = ((spliceRange[0] + spliceRange[1]) / 2).toStringAsFixed(2);
+    _connectorLossController.text = config['connectorLoss'].toStringAsFixed(2);
 
-      final spliceRange = List<double>.from(config['spliceRange']);
-      _spliceLossController.text = ((spliceRange[0] + spliceRange[1]) / 2).toStringAsFixed(2);
-      _connectorLossController.text = config['connectorLoss'].toStringAsFixed(2);
-
-      _distanceController.text = (_fiberType == 'sm' ? '10' : '100');
-      _numSplicesController.text = '2';
-      _numConnectorsController.text = '2';
-      _otherLossController.text = '0';
-      
-      // Calculate loss on defaults update
-      WidgetsBinding.instance.addPostFrameCallback((_) => _calculateLoss());
-    });
+    _distanceController.text = (_fiberType == 'sm' ? '10' : '100');
+    _numSplicesController.text = '2';
+    _numConnectorsController.text = '2';
+    _otherLossController.text = '0';
+    // The listeners will automatically call _calculateLoss() when text changes.
   }
 
   void _calculateLoss() {
@@ -203,14 +212,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
             _buildTextField(_connectorLossController, 'Connector Loss per Connector (dB)'),
             
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _calculateLoss,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 18),
-              ),
-              child: const Text('Calculate Total Loss'),
-            ),
+
             
             if (_totalLoss != null) ...[
               const SizedBox(height: 20),
@@ -262,8 +264,16 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
           _fiberType = newSelection.first;
           _smStandard = 'G.652.A';
           _mmStandard = 'OM1';
-          _updateDefaults();
+
+          // Ensure wavelength is valid for the new fiber type
+          final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
+          final config = STANDARDS[_fiberType][standardKey];
+          final validWavelengths = List<int>.from(config['wavelengths']);
+          if (!validWavelengths.contains(_wavelength)) {
+            _wavelength = validWavelengths[0];
+          }
         });
+        _updateDefaults();
       },
     );
   }
@@ -293,8 +303,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
             } else {
               _mmStandard = newValue!;
             }
-            _updateDefaults();
           });
+          _updateDefaults();
         },
       ),
     );
@@ -318,8 +328,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
         onChanged: (newValue) {
           setState(() {
             _wavelength = newValue!;
-            _updateDefaults();
           });
+          _updateDefaults();
         },
       ),
     );
