@@ -398,7 +398,14 @@ Available Margin: ${availableMargin.toStringAsFixed(2)} dB
       appBar: AppBar(
         title: const Text('Optical Power Budget'),
         actions: [
-          _buildPopupMenu(context),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'new') {
+                _newProject();
+              } else if (value == 'save') {
+                _saveProject();
+              } else if (value == 'load') {
+                _loadProject();
               } else if (value == 'about') {
                 _showAboutDialog();
               }
