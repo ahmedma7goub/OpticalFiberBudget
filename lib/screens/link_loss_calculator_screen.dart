@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-// Note: The STANDARDS map is kept for fiber loss values per wavelength.
-// It's a large constant, so it's defined at the end of the file for readability.
+// This screen is a simplified version of the main calculator, focused only on Link Loss.
+// It reuses the same standards map and core layout for consistency.
 
 class LinkLossCalculatorScreen extends StatefulWidget {
   const LinkLossCalculatorScreen({super.key});
@@ -31,49 +31,40 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   // Results
   double? _totalLoss;
 
+  // The STANDARDS map is large and unchanged, so it's moved to the end of the file.
+
   @override
   void initState() {
     super.initState();
-
-    // Add listeners to all controllers to trigger recalculation on any input change.
-    _distanceController.addListener(_calculateLoss);
-    _numSplicesController.addListener(_calculateLoss);
-    _numConnectorsController.addListener(_calculateLoss);
-    _otherLossController.addListener(_calculateLoss);
-    _fiberLossController.addListener(_calculateLoss);
-    _spliceLossController.addListener(_calculateLoss);
-    _connectorLossController.addListener(_calculateLoss);
-
-    // Defer the initial setup until after the first frame is built.
-    // This will set the default values in the text fields, which will
-    // then trigger the listeners to perform the initial calculation.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateDefaults();
-    });
+    // Set initial default values when the screen loads.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateDefaults());
   }
 
   void _updateDefaults() {
-    // This method now only sets the text of the controllers.
-    // It does not call setState, as the listeners will trigger the rebuild.
-    final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
-    final config = STANDARDS[_fiberType][standardKey];
+    setState(() {
+      final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
+      final config = STANDARDS[_fiberType][standardKey];
 
-    final validWavelengths = List<int>.from(config['wavelengths']);
-    if (!validWavelengths.contains(_wavelength)) {
-      // This state change must be done in the event handler's setState block.
-      // We will handle it there and re-call this method.
-    }
+      final validWavelengths = List<int>.from(config['wavelengths']);
+      if (!validWavelengths.contains(_wavelength)) {
+        _wavelength = validWavelengths[0];
+      }
 
-    _fiberLossController.text = config['loss'][_wavelength].toDouble().toStringAsFixed(2);
-    final spliceRange = List<double>.from(config['spliceRange']);
-    _spliceLossController.text = ((spliceRange[0] + spliceRange[1]) / 2).toStringAsFixed(2);
-    _connectorLossController.text = config['connectorLoss'].toStringAsFixed(2);
+      _fiberLossController.text = config['loss'][_wavelength].toDouble().toStringAsFixed(2);
 
-    _distanceController.text = (_fiberType == 'sm' ? '10' : '100');
-    _numSplicesController.text = '2';
-    _numConnectorsController.text = '2';
-    _otherLossController.text = '0';
-    // The listeners will automatically call _calculateLoss() when text changes.
+      final spliceRange = List<double>.from(config['spliceRange']);
+      _spliceLossController.text = ((spliceRange[0] + spliceRange[1]) / 2).toStringAsFixed(2);
+      _connectorLossController.text = config['connectorLoss'].toStringAsFixed(2);
+
+      _distanceController.text = (_fiberType == 'sm' ? '10' : '100');
+      _numSplicesController.text = '2';
+      _numConnectorsController.text = '2';
+      _otherLossController.text = '0';
+      
+      // Clear previous results and calculate new ones.
+      _totalLoss = null;
+      _calculateLoss();
+    });
   }
 
   void _calculateLoss() {
@@ -98,7 +89,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
       _totalLoss = totalLoss;
     });
   }
-  
+
   void _showAboutDialog() {
     showDialog(
       context: context,
@@ -115,7 +106,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
             ),
             content: SizedBox(
               width: double.maxFinite,
-              height: 320, // Adjusted height for content
+              height: 320,
               child: TabBarView(
                 children: [
                   const SingleChildScrollView(
@@ -137,20 +128,14 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Fiber Standards',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                        Text('Fiber Standards', style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         const Text(
-                          'The app uses typical values from ITU-T and TIA standards. These are pre-filled when you select a standard but are fully editable to match your project\'s specific requirements.',
+                          'The app uses typical values from ITU-T and TIA standards. These are pre-filled when you select a standard but are fully editable.',
                           style: TextStyle(fontSize: 14),
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          'Core Equation',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                        Text('Core Equation', style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 12),
                         const Text('Total System Loss (dB):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                         const Text('(Attenuation × Distance) + (Splice Loss × Splices) + (Connector Loss × Connectors) + Other Losses', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 13)),
@@ -212,12 +197,19 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
             _buildTextField(_connectorLossController, 'Connector Loss per Connector (dB)'),
             
             const SizedBox(height: 20),
-
+            ElevatedButton(
+              onPressed: _calculateLoss,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
+              child: const Text('Calculate Total Loss'),
+            ),
             
             if (_totalLoss != null) ...[
               const SizedBox(height: 20),
               _buildCategoryHeader('Calculation Results'),
-              _buildResultCard('Total System Loss', '${_totalLoss!.toStringAsFixed(2)} dB', isDarkMode, isGood: true),
+              _buildResultCard('Total System Loss', '${_totalLoss!.toStringAsFixed(2)} dB', isDarkMode),
             ]
           ],
         ),
@@ -264,16 +256,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
           _fiberType = newSelection.first;
           _smStandard = 'G.652.A';
           _mmStandard = 'OM1';
-
-          // Ensure wavelength is valid for the new fiber type
-          final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
-          final config = STANDARDS[_fiberType][standardKey];
-          final validWavelengths = List<int>.from(config['wavelengths']);
-          if (!validWavelengths.contains(_wavelength)) {
-            _wavelength = validWavelengths[0];
-          }
+          _updateDefaults();
         });
-        _updateDefaults();
       },
     );
   }
@@ -303,8 +287,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
             } else {
               _mmStandard = newValue!;
             }
+            _updateDefaults();
           });
-          _updateDefaults();
         },
       ),
     );
@@ -328,16 +312,16 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
         onChanged: (newValue) {
           setState(() {
             _wavelength = newValue!;
+            _updateDefaults();
           });
-          _updateDefaults();
         },
       ),
     );
   }
   
-  Widget _buildResultCard(String title, String value, bool isDarkMode, {required bool isGood}) {
-    Color cardColor = isGood ? (isDarkMode ? Colors.green[800]! : Colors.green[100]!) : (isDarkMode ? Colors.red[800]! : Colors.red[100]!);
-    Color textColor = isGood ? (isDarkMode ? Colors.green[100]! : Colors.green[900]!) : (isDarkMode ? Colors.red[100]! : Colors.red[900]!);
+  Widget _buildResultCard(String title, String value, bool isDarkMode) {
+    Color cardColor = isDarkMode ? Colors.green[800]! : Colors.green[100]!;
+    Color textColor = isDarkMode ? Colors.green[100]! : Colors.green[900]!;
     
     return Card(
       color: cardColor,
@@ -355,7 +339,6 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   }
 }
 
-// Constants
 const Map<String, dynamic> STANDARDS = {
     'sm': {
       'G.652.A': {
