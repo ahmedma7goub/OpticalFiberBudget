@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-// This screen is a simplified version of the main calculator, focused only on Link Loss.
-// It is a direct copy of the working calculator, with power and project features removed.
-
 class LinkLossCalculatorScreen extends StatefulWidget {
   const LinkLossCalculatorScreen({super.key});
 
@@ -58,7 +55,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
       _numConnectorsController.text = '2';
       _otherLossController.text = '0';
       
-      _calculateLoss(fromButton: false); // Initial calculation without another setState
+      _calculateLoss(fromButton: false);
     });
   }
 
@@ -341,117 +338,72 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
 const Map<String, dynamic> STANDARDS = {
     'sm': {
       'G.652.A': {
-        'tx': -3.0,
-        'rx': -28.0,
         'loss': {1310: 0.35, 1550: 0.25},
-        'maxDistance': 160.0,
         'connectorLoss': 0.5,
         'spliceRange': [0.1, 0.3],
-        'ref': 'ITU-T G.652.A (2022)',
         'wavelengths': [1310, 1550]
       },
       'G.655': {
-        'tx': -2.0,
-        'rx': -27.0,
         'loss': {1310: 0.35, 1550: 0.22},
-        'maxDistance': 200.0,
         'connectorLoss': 0.4,
         'spliceRange': [0.05, 0.2],
-        'ref': 'ITU-T G.655 (2009)',
         'wavelengths': [1310, 1550]
       },
       'G.652.B': {
-        'tx': -3.0,
-        'rx': -28.0,
         'loss': {1310: 0.35, 1550: 0.25},
-        'maxDistance': 160.0,
         'connectorLoss': 0.5,
         'spliceRange': [0.1, 0.3],
-        'ref': 'ITU-T G.652.B',
         'wavelengths': [1310, 1550]
       },
       'G.652.C': {
-        'tx': -3.0,
-        'rx': -28.0,
         'loss': {1310: 0.35, 1550: 0.22},
-        'maxDistance': 160.0,
         'connectorLoss': 0.5,
         'spliceRange': [0.1, 0.3],
-        'ref': 'ITU-T G.652.C (LWP)',
         'wavelengths': [1310, 1550]
       },
       'G.652.D': {
-        'tx': -2.0,
-        'rx': -29.0,
         'loss': {1310: 0.33, 1550: 0.19},
-        'maxDistance': 180.0,
         'connectorLoss': 0.4,
         'spliceRange': [0.05, 0.2],
-        'ref': 'ITU-T G.652.D (LWP + PMD)',
         'wavelengths': [1310, 1550]
       },
       'G.656': {
-        'tx': -1.0,
-        'rx': -26.0,
         'loss': {1310: 0.35, 1550: 0.23},
-        'maxDistance': 200.0,
         'connectorLoss': 0.4,
         'spliceRange': [0.05, 0.2],
-        'ref': 'ITU-T G.656 (Wideband NZDSF)',
         'wavelengths': [1310, 1550]
       }
     },
     'mm': {
       'OM1': {
-        'tx': 0.0,
-        'rx': -16.0,
         'loss': {850: 3.5, 1300: 1.5},
-        'maxDistance': 300.0,
         'connectorLoss': 0.75,
         'spliceRange': [0.3, 0.5],
-        'ref': 'TIA-492AAAA',
-        'wavelengths': [850]
+        'wavelengths': [850, 1300]
       },
       'OM2': {
-        'tx': -1.0,
-        'rx': -18.0,
         'loss': {850: 3.0, 1300: 1.0},
-        'maxDistance': 550.0,
         'connectorLoss': 0.7,
         'spliceRange': [0.2, 0.4],
-        'ref': 'TIA-492AAAB',
-        'wavelengths': [850]
+        'wavelengths': [850, 1300]
       },
       'OM3': {
-        'tx': 1.0,
-        'rx': -20.0,
         'loss': {850: 2.5, 1300: 0.8},
-        'maxDistance': 1000.0,
         'connectorLoss': 0.6,
         'spliceRange': [0.1, 0.3],
-        'ref': 'TIA-492AAAC',
-        'wavelengths': [850]
+        'wavelengths': [850, 1300]
       },
       'OM4': {
-        'tx': 1.0,
-        'rx': -22.0,
         'loss': {850: 2.3, 1300: 0.7},
-        'maxDistance': 1200.0,
         'connectorLoss': 0.5,
         'spliceRange': [0.1, 0.3],
-        'ref': 'TIA-492AAAD',
-        'wavelengths': [850]
+        'wavelengths': [850, 1300]
       },
       'OM5': {
-        'tx': 1.0,
-        'rx': -22.0,
         'loss': {850: 2.3, 953: 1.9},
-        'maxDistance': 1500.0,
         'connectorLoss': 0.5,
         'spliceRange': [0.1, 0.3],
-        'ref': 'TIA-492AAAE',
-        'wavelengths': [850]
+        'wavelengths': [850, 953]
       }
     }
   };
-
