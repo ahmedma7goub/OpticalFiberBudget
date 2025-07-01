@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+// This screen is a standalone calculator for Link Loss only.
+// It is completely independent of the project saving/loading system.
+
 class LinkLossCalculatorScreen extends StatefulWidget {
   const LinkLossCalculatorScreen({super.key});
 
@@ -37,24 +40,23 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   void _updateDefaults() {
     setState(() {
       final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
-      final config = STANDARDS[_fiberType][standardKey];
+      final config = STANDARDS[_fiberType]![standardKey]!;
 
-      final validWavelengths = List<int>.from(config['wavelengths']);
+      final validWavelengths = List<int>.from(config['wavelengths'] as List);
       if (!validWavelengths.contains(_wavelength)) {
         _wavelength = validWavelengths[0];
       }
 
-      _fiberLossController.text = config['loss'][_wavelength].toDouble().toStringAsFixed(2);
+      _fiberLossController.text = (config['loss'] as Map<int, double>)[_wavelength]!.toDouble().toStringAsFixed(2);
 
-      final spliceRange = List<double>.from(config['spliceRange']);
+      final spliceRange = List<double>.from(config['spliceRange'] as List);
       _spliceLossController.text = ((spliceRange[0] + spliceRange[1]) / 2).toStringAsFixed(2);
-      _connectorLossController.text = config['connectorLoss'].toStringAsFixed(2);
+      _connectorLossController.text = (config['connectorLoss'] as double).toStringAsFixed(2);
 
       _distanceController.text = (_fiberType == 'sm' ? '10' : '100');
       _numSplicesController.text = '2';
       _numConnectorsController.text = '2';
       _otherLossController.text = '0';
-      
       _calculateLoss(fromButton: false);
     });
   }
@@ -82,6 +84,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
         _totalLoss = totalLoss;
       });
     } else {
+      // This is called from initState/updateDefaults, so we just set the value.
+      // The parent setState in _updateDefaults will handle the rebuild.
       _totalLoss = totalLoss;
     }
   }
@@ -156,8 +160,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
-    final config = STANDARDS[_fiberType][standardKey];
-    final validWavelengths = List<int>.from(config['wavelengths']);
+    final config = STANDARDS[_fiberType]![standardKey]!;
+    final validWavelengths = List<int>.from(config['wavelengths'] as List);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -259,7 +263,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   }
 
   Widget _buildStandardSelector(String type) {
-    final standards = STANDARDS[type].keys.toList();
+    final standards = STANDARDS[type]!.keys.toList();
     String currentStandard = type == 'sm' ? _smStandard : _mmStandard;
 
     return Padding(
@@ -291,10 +295,13 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   }
 
   Widget _buildWavelengthSelector(List<int> wavelengths) {
+    // Ensure the current wavelength is valid for the given list.
+    final int currentWavelength = wavelengths.contains(_wavelength) ? _wavelength : wavelengths[0];
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<int>(
-        value: _wavelength,
+        value: currentWavelength,
         decoration: const InputDecoration(
           labelText: 'Wavelength (nm)',
           border: OutlineInputBorder(),
@@ -314,7 +321,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
       ),
     );
   }
-  
+
   Widget _buildResultCard(String title, String value, bool isDarkMode) {
     Color cardColor = isDarkMode ? Colors.green[800]! : Colors.green[100]!;
     Color textColor = isDarkMode ? Colors.green[100]! : Colors.green[900]!;
@@ -335,7 +342,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   }
 }
 
-const Map<String, dynamic> STANDARDS = {
+// A clean, project-independent map of standards.
+const Map<String, Map<String, Map<String, Object>>> STANDARDS = {
     'sm': {
       'G.652.A': {
         'loss': {1310: 0.35, 1550: 0.25},
