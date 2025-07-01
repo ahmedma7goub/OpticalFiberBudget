@@ -32,7 +32,9 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
     _connectorLossController.addListener(_calculateTotalLoss);
     _connectorCountController.addListener(_calculateTotalLoss);
     _maintenanceMarginController.addListener(_calculateTotalLoss);
-    _calculateTotalLoss(); // Initial calculation
+
+    // Perform the initial calculation after the first frame is built.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateTotalLoss());
   }
 
   @override
