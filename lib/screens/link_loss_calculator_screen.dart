@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // This screen is a simplified version of the main calculator, focused only on Link Loss.
-// It reuses the same standards map and core layout for consistency.
+// It is a direct copy of the working calculator, with power and project features removed.
 
 class LinkLossCalculatorScreen extends StatefulWidget {
   const LinkLossCalculatorScreen({super.key});
@@ -31,13 +31,10 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   // Results
   double? _totalLoss;
 
-  // The STANDARDS map is large and unchanged, so it's moved to the end of the file.
-
   @override
   void initState() {
     super.initState();
-    // Set initial default values when the screen loads.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateDefaults());
+    _updateDefaults();
   }
 
   void _updateDefaults() {
@@ -61,20 +58,11 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
       _numConnectorsController.text = '2';
       _otherLossController.text = '0';
       
-      // Perform calculation directly within the setState block.
-      _totalLoss = _performCalculation();
+      _calculateLoss(fromButton: false); // Initial calculation without another setState
     });
   }
 
-  // This handles the button press, performing the calculation and updating the state.
-  void _calculateLoss() {
-    setState(() {
-      _totalLoss = _performCalculation();
-    });
-  }
-
-  // Separated calculation logic to prevent nested setState calls.
-  double _performCalculation() {
+  void _calculateLoss({bool fromButton = true}) {
     final fiberLoss = double.tryParse(_fiberLossController.text) ?? 0;
     final spliceLoss = double.tryParse(_spliceLossController.text) ?? 0;
     final connectorLoss = double.tryParse(_connectorLossController.text) ?? 0;
@@ -86,10 +74,19 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
 
     final effectiveDistance = _fiberType == 'sm' ? distance : distance / 1000;
 
-    return (fiberLoss * effectiveDistance) +
+    final totalLoss =
+        (fiberLoss * effectiveDistance) +
         (spliceLoss * numSplices) +
         (connectorLoss * numConnectors) +
         otherLoss;
+
+    if (fromButton) {
+      setState(() {
+        _totalLoss = totalLoss;
+      });
+    } else {
+      _totalLoss = totalLoss;
+    }
   }
 
   void _showAboutDialog() {
@@ -162,17 +159,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final standardKey = _fiberType == 'sm' ? _smStandard : _mmStandard;
-    // Defensively get the config to prevent crashes if the state is temporarily inconsistent.
-    final config = (STANDARDS[_fiberType] as Map<String, dynamic>?)?[standardKey] as Map<String, dynamic>?;
-
-    // If config is null, the state is inconsistent. Show a loading view to prevent a crash.
-    if (config == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Link Power Loss')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
+    final config = STANDARDS[_fiberType][standardKey];
     final validWavelengths = List<int>.from(config['wavelengths']);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -193,8 +180,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
           children: [
             _buildCategoryHeader('Fiber Configuration'),
             _buildFiberTypeSelector(),
-            if (_fiberType == 'sm') _buildStandardSelector('sm', validWavelengths)
-            else _buildStandardSelector('mm', validWavelengths),
+            if (_fiberType == 'sm') _buildStandardSelector('sm')
+            else _buildStandardSelector('mm'),
             _buildWavelengthSelector(validWavelengths),
             
             _buildCategoryHeader('Link Parameters'),
@@ -210,7 +197,7 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
             
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _calculateLoss,
+              onPressed: () => _calculateLoss(),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 textStyle: const TextStyle(fontSize: 18),
@@ -264,19 +251,17 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
       ],
       selected: {_fiberType},
       onSelectionChanged: (newSelection) {
-        // Update state first, then call _updateDefaults outside of setState to avoid nesting errors.
         setState(() {
           _fiberType = newSelection.first;
-          // Reset to default standards when type changes.
           _smStandard = 'G.652.A';
           _mmStandard = 'OM1';
+          _updateDefaults();
         });
-        _updateDefaults();
       },
     );
   }
 
-  Widget _buildStandardSelector(String type, List<int> validWavelengths) {
+  Widget _buildStandardSelector(String type) {
     final standards = STANDARDS[type].keys.toList();
     String currentStandard = type == 'sm' ? _smStandard : _mmStandard;
 
@@ -301,21 +286,18 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
             } else {
               _mmStandard = newValue!;
             }
+            _updateDefaults();
           });
-          _updateDefaults();
         },
       ),
     );
   }
 
   Widget _buildWavelengthSelector(List<int> wavelengths) {
-    // Ensure the current wavelength is valid for the given list.
-    final int currentWavelength = wavelengths.contains(_wavelength) ? _wavelength : wavelengths[0];
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<int>(
-        value: currentWavelength,
+        value: _wavelength,
         decoration: const InputDecoration(
           labelText: 'Wavelength (nm)',
           border: OutlineInputBorder(),
@@ -329,8 +311,8 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
         onChanged: (newValue) {
           setState(() {
             _wavelength = newValue!;
+            _updateDefaults();
           });
-          _updateDefaults();
         },
       ),
     );
