@@ -34,7 +34,11 @@ class _LinkLossCalculatorScreenState extends State<LinkLossCalculatorScreen> {
   @override
   void initState() {
     super.initState();
-    _updateDefaults();
+    // Defer the initial setup and calculation until after the first frame is built.
+    // This prevents errors during initialization that can cause a blank screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateDefaults();
+    });
   }
 
   void _updateDefaults() {
